@@ -2119,8 +2119,7 @@ public class PackageManagerService implements PackageSender, TestUtilityService 
             if (mIsUpgrade) {
                 PackageManagerServiceUtils.logCriticalInfo(Log.INFO,
                         "Upgrading from " + ver.fingerprint + " (" + ver.buildFingerprint + ") to "
-                                + PackagePartitions.FINGERPRINT
-                                + " (" + Build.VERSION.INCREMENTAL + ")");
+                                + PackagePartitions.FINGERPRINT + " (" + Build.VERSION.INCREMENTAL + ")");
             }
 
             mInitAppsHelper = new InitAppsHelper(this, mApexManager, mInstallPackageHelper,
