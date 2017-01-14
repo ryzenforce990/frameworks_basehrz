@@ -235,6 +235,7 @@ import com.android.systemui.statusbar.phone.fragment.CollapsedStatusBarFragment;
 import com.android.systemui.statusbar.phone.ongoingcall.OngoingCallController;
 import com.android.systemui.statusbar.policy.BatteryController;
 import com.android.systemui.statusbar.policy.BrightnessMirrorController;
+import com.android.systemui.statusbar.policy.BurnInProtectionController;
 import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.ConfigurationController.ConfigurationListener;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController;
@@ -456,6 +457,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
     private final AutoHideController mAutoHideController;
 
     private final Point mCurrentDisplaySize = new Point();
+    private BurnInProtectionController mBurnInProtectionController;
 
     protected NotificationShadeWindowView mNotificationShadeWindowView;
     protected PhoneStatusBarView mStatusBarView;
@@ -834,7 +836,8 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
             AlternateBouncerInteractor alternateBouncerInteractor,
             UserTracker userTracker,
             Provider<FingerprintManager> fingerprintManager,
-            ActivityStarter activityStarter
+            ActivityStarter activityStarter,
+            BurnInProtectionController burnInProtectionController
     ) {
         mContext = context;
         mNotificationsController = notificationsController;
@@ -938,6 +941,8 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
 
         mShadeExpansionStateManager.addFullExpansionListener(this::onShadeExpansionFullyChanged);
 
+        mBurnInProtectionController = burnInProtectionController;
+
         mActivityIntentHelper = new ActivityIntentHelper(mContext);
         mActivityLaunchAnimator = activityLaunchAnimator;
         mGameSpaceManager = new GameSpaceManager(mContext, mKeyguardStateController);
@@ -969,6 +974,8 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
         }
         // Based on teamfood flag, enable predictive back animation for the Shade.
         mAnimateBack = mFeatureFlags.isEnabled(Flags.WM_SHADE_ANIMATE_BACK_GESTURE);
+
+        mBurnInProtectionController.setStatusBar(this);
     }
 
     private void initBubbles(Bubbles bubbles) {
@@ -1313,6 +1320,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
                     mShadeSurface.updateExpansionAndVisibility();
                     setBouncerShowingForStatusBarComponents(mBouncerShowing);
                     checkBarModes();
+                    mBurnInProtectionController.setPhoneStatusBarView(mStatusBarView);
                 });
         mStatusBarInitializer.initializeStatusBar(
                 mCentralSurfacesComponent::createCollapsedStatusBarFragment);
@@ -3170,6 +3178,10 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
 
             updateNotificationPanelTouchState();
             mNotificationShadeWindowViewController.cancelCurrentTouch();
+
+            if (mBurnInProtectionController != null) {
+                mBurnInProtectionController.stopShiftTimer();
+            }
             if (mLaunchCameraOnFinishedGoingToSleep) {
                 mLaunchCameraOnFinishedGoingToSleep = false;
 
@@ -3332,6 +3344,9 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
                 }
             }
             updateScrimController();
+            if (mBurnInProtectionController != null) {
+                mBurnInProtectionController.startShiftTimer();
+            }
         }
     };
 
