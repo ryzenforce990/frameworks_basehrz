@@ -99,7 +99,6 @@ public class FakeBluetoothController extends BaseLeakChecker<Callback> implement
 
     }
 
-    @Override
     public int getBatteryLevel() {
         return 0;
     }
