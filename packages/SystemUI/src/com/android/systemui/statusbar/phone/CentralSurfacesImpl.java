@@ -1433,7 +1433,6 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces {
                             .withDefault(this::createDefaultQSFragment)
                             .build());
             mBrightnessMirrorController = new BrightnessMirrorController(
-                    mContext,
                     mNotificationShadeWindowView,
                     mShadeSurface,
                     mNotificationShadeDepthControllerLazy.get(),
